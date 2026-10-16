@@ -1,0 +1,11 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - heading "图片瓦片实验 · GDAL + OpenLayers" [level=1] [ref=e3]
+    - button "显示全图" [ref=e4] [cursor=pointer]
+    - text: 层级 1.0 / 4 · 分辨率 8.00 · 加载完成 4 · 失败 0
+    - generic [ref=e5]: 滚轮缩放，按住鼠标拖动。点击图片可查看原图像素坐标。
+  - main "可缩放和拖动的图片瓦片地图" [ref=e6]:
+    - generic [ref=e11]:
+      - button "+" [ref=e12] [cursor=pointer]
+      - button "–" [ref=e13] [cursor=pointer]
+  - contentinfo [ref=e14]: 图片尺寸：4096 × 4096；瓦片尺寸：256 × 256；层级：0～4。

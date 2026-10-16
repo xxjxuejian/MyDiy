@@ -1,0 +1,23 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e8]:
+      - generic:
+        - generic:
+          - link "Cesium ion":
+            - /url: https://cesium.com/
+            - img "Cesium ion"
+      - button "Data attribution" [ref=e9] [cursor=pointer]
+    - button "Full screen" [ref=e11] [cursor=pointer]
+  - generic [ref=e14]:
+    - heading "园区地理瓦片覆盖" [level=1] [ref=e15]
+    - button "定位园区" [ref=e16] [cursor=pointer]
+    - generic [ref=e17]:
+      - checkbox "显示园区影像" [checked] [ref=e18]
+      - text: 显示园区影像
+    - generic [ref=e19]:
+      - text: 影像不透明度
+      - slider "影像不透明度" [ref=e20]: "0.85"
+    - generic [ref=e21]:
+      - checkbox "显示 OSM 参考底图（需要联网）" [ref=e22]
+      - text: 显示 OSM 参考底图（需要联网）
+    - generic [ref=e23]: 范围（西、南、东、北）：119.996956, 29.995536, 120.006154, 30.003502；层级 0～18。默认网格底图用于检查加载，配准精度需对照参考数据。

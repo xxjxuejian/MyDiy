@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第一阶段：图片瓦片实验</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@10.11.0/ol.css">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 15px/1.6 system-ui, sans-serif; color: #203047; }
+    header { padding: 12px 18px; background: #fff; border-bottom: 1px solid #d8e0e8; }
+    h1 { margin: 0 0 4px; font-size: 20px; }
+    button { padding: 5px 12px; cursor: pointer; }
+    #map { height: calc(100dvh - 150px); min-height: 320px; background: #e5eaf0; }
+    footer { padding: 10px 18px; }
+    #status { margin-left: 12px; }
+    #message { color: #975300; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>图片瓦片实验 · GDAL + OpenLayers</h1>
+    <button id="fit" type="button">显示全图</button>
+    <span id="status">正在加载 OpenLayers…</span>
+    <div id="message">滚轮缩放，按住鼠标拖动。点击图片可查看原图像素坐标。</div>
+  </header>
+  <main id="map" aria-label="可缩放和拖动的图片瓦片地图"></main>
+  <footer id="point">图片尺寸：4096 × 4096；瓦片尺寸：256 × 256；层级：0～4。</footer>
+  <script src="https://cdn.jsdelivr.net/npm/ol@10.11.0/dist/ol.js"></script>
+  <script>
+    if (typeof ol === 'undefined') {
+      document.getElementById('status').textContent = 'OpenLayers 加载失败，请检查 CDN 网络连接。';
+      throw new Error('OpenLayers CDN failed to load');
+    }
+
+    const imageSize = 4096;
+    // OpenLayers 地图坐标：左下角为 [0, 0]，Y 向上。
+    const extent = [0, 0, imageSize, imageSize];
+    const resolutions = [16, 8, 4, 2, 1];
+    const projection = new ol.proj.Projection({
+      code: 'IMAGE-PIXELS',
+      units: 'pixels',
+      extent,
+    });
+
+    // 瓦片从左上角编号：X 向右、Y 向下，与 --xyz 对应。
+    const tileGrid = new ol.tilegrid.TileGrid({
+      extent,
+      origin: [0, imageSize],
+      resolutions,
+      tileSize: 256,
+    });
+
+    const source = new ol.source.XYZ({
+      projection,
+      tileGrid,
+      url: './tiles/{z}/{x}/{y}.png',
+      wrapX: false,
+      transition: 0,
+    });
+
+    const view = new ol.View({
+      projection,
+      extent,
+      center: [imageSize / 2, imageSize / 2],
+      resolutions,
+      zoom: 0,
+      constrainResolution: true,
+      constrainOnlyCenter: true,
+      enableRotation: false,
+    });
+
+    const map = new ol.Map({
+      target: 'map',
+      layers: [new ol.layer.Tile({ source, extent, preload: 0 })],
+      view,
+    });
+
+    let loaded = 0;
+    let failed = 0;
+    function updateStatus() {
+      const zoom = view.getZoom();
+      document.getElementById('status').textContent =
+        `层级 ${zoom.toFixed(1)} / 4 · 分辨率 ${view.getResolution().toFixed(2)} · 加载完成 ${loaded} · 失败 ${failed}`;
+    }
+
+    source.on('tileloadend', () => { loaded += 1; updateStatus(); });
+    source.on('tileloaderror', () => {
+      failed += 1;
+      document.getElementById('message').textContent =
+        '有瓦片加载失败：请检查 tiles 目录、文件路径和浏览器 Network 面板。';
+      updateStatus();
+    });
+    view.on('change:resolution', updateStatus);
+
+    function fitImage() {
+      view.fit(extent, { size: map.getSize(), padding: [20, 20, 20, 20], nearest: false });
+      updateStatus();
+    }
+    document.getElementById('fit').addEventListener('click', fitImage);
+    map.on('singleclick', (event) => {
+      const [x, mapY] = event.coordinate;
+      if (x < 0 || x >= imageSize || mapY <= 0 || mapY > imageSize) return;
+      const imageX = Math.floor(x);
+      const imageY = Math.floor(imageSize - mapY);
+      document.getElementById('point').textContent =
+        `原图像素坐标（左上角为原点）：x=${imageX}, y=${imageY}；最高级瓦片：4/${Math.floor(imageX / 256)}/${Math.floor(imageY / 256)}.png`;
+    });
+    fitImage();
+  </script>
+</body>
+</html>
